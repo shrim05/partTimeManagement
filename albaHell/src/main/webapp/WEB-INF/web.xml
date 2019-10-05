@@ -31,6 +31,7 @@
       <param-name>basePackages</param-name>
       <param-value>
   		kr.or.ddit.alba.controller
+  		kr.or.ddit.others.controller
   		</param-value>
     </init-param>
     <init-param>

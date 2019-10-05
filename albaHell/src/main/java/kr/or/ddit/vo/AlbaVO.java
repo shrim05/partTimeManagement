@@ -22,6 +22,13 @@ public class AlbaVO implements Serializable{
 	private String gr_name;
 	private List<LicenseVO> licList;
 	
+	@Override
+	public String toString() {
+		return "AlbaVO [al_id=" + al_id + ", al_name=" + al_name + ", al_age=" + al_age + ", al_address=" + al_address
+				+ ", al_hp=" + al_hp + ", al_spec=" + al_spec + ", al_desc=" + al_desc + ", gr_code=" + gr_code
+				+ ", al_career=" + al_career + ", al_gen=" + al_gen + ", al_btype=" + al_btype + ", al_mail=" + al_mail
+				+ ", gr_name=" + gr_name + ", licList=" + licList + "]";
+	}
 	public String getAl_id() {
 		return al_id;
 	}

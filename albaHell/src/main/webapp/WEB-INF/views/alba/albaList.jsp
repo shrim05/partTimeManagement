@@ -88,10 +88,6 @@
 	         dataType : "html",
 	         success : function(resp) {
 	            exampleModal.find(".modal-body").html(resp);
-	            $('#insertBtn').show();
-	            $('#resetBtn').show();
-	            $('#deleteBtn').hide();
-	            $('#updateBtn').hide();
 	            exampleModal.modal("show");
 	         },
 	         error : function(errorResp) {
@@ -112,9 +108,9 @@
 			data : queryString,
 			dataType : "json",
 			success : function(resp) {
-				let memberList = resp.dataList;
+				let albaList = resp.dataList;
 				let trTags = [];
-				$.each(memberList,function(i,v){
+				$.each(albaList,function(i,v){
 					let trTag = $("<tr>").append(
 						$("<td>").text(v.al_id),
 						$("<td>").text(v.al_name),

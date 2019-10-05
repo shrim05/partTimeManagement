@@ -43,19 +43,24 @@ public class AlbaInsertController {
 		} catch (IllegalAccessException | InvocationTargetException e) {
 			throw new RuntimeException();
 		}
-		
+		String[] lic_codes = req.getParameterValues("lic_code");
 		List<LicenseVO> licList =null;
-		if(req instanceof MultipartRequestWapper) {
-			PartWrapper[] partWrapper =  ((MultipartRequestWapper) req).getPartWrappers("lic_image");
-			if(partWrapper!=null) {
-				licList = new ArrayList<>();
-				for(PartWrapper tmp : partWrapper) {
-					LicenseVO lv = new LicenseVO();
-					lv.setLic_image(tmp.getBytes());
-					licList.add(lv);
-				}
+		LicenseVO lv = null;
+		if(lic_codes!=null && lic_codes.length>0) {
+			licList = new ArrayList<>();
+			PartWrapper[] partWrappers =  ((MultipartRequestWapper) req).getPartWrappers("lic_image");
+			for (int i = 0; i < lic_codes.length; i++) {
+				lv = new LicenseVO();
+				lv.setLic_code(lic_codes[i]);
+				if(req instanceof MultipartRequestWapper) {
+					if(partWrappers!=null) {
+						lv.setLic_image(partWrappers[i].getBytes());
+						}
+					}
+				licList.add(lv);
 			}
 		}
+		av.setLicList(licList);
 		Map<String, String> errors = new HashMap<String, String>();
 		req.setAttribute("errors", errors);
 		Boolean valid = validate(av, errors);
@@ -66,7 +71,7 @@ public class AlbaInsertController {
 			switch (result) {
 			case OK:
 				message ="추가 성공";
-				viewName ="redirect:/albaView.do?al_id="+av.getAl_id();
+				viewName ="redirect:/alba/albaView.do?who="+av.getAl_id();
 				break;
 			case FAILED:
 				message="서버오류";
@@ -74,6 +79,7 @@ public class AlbaInsertController {
 				break;
 			}
 		}else {
+			message="항목누락";
 			viewName="/alba/albaForm";
 		}
 		req.setAttribute("message", message);

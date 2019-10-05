@@ -11,7 +11,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.BeanUtilsBean;
+import org.apache.commons.beanutils.BeanUtilsBean2;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.runner.Request;
+
+import com.fasterxml.jackson.databind.util.BeanUtil;
 
 import kr.or.ddit.alba.service.AlbaServiceImpl;
 import kr.or.ddit.alba.service.IAlbaService;
@@ -53,19 +58,28 @@ public class AlbaUpdateController {
 		} catch (IllegalAccessException | InvocationTargetException e) {
 			throw new RuntimeException();
 		}
-		
+		String[] lic_codes = req.getParameterValues("lic_code");
 		List<LicenseVO> licList =null;
-		if(req instanceof MultipartRequestWapper) {
-			PartWrapper[] partWrapper =  ((MultipartRequestWapper) req).getPartWrappers("lic_image");
-			if(partWrapper!=null) {
-				licList = new ArrayList<>();
-				for(PartWrapper tmp : partWrapper) {
-					LicenseVO lv = new LicenseVO();
-					lv.setLic_image(tmp.getBytes());
-					licList.add(lv);
+		LicenseVO lv = null;
+		if(lic_codes!=null && lic_codes.length>0) {
+			licList = new ArrayList<>();
+			PartWrapper[] partWrappers =  ((MultipartRequestWapper) req).getPartWrappers("lic_image");
+			for (int i = 0; i < lic_codes.length; i++) {
+				lv = new LicenseVO();
+				lv.setLic_code(lic_codes[i]);
+				if(req instanceof MultipartRequestWapper) {
+					if(partWrappers!=null) {
+						try {
+							lv.setLic_image(partWrappers[i].getBytes());
+						}catch(ArrayIndexOutOfBoundsException e) {
+							lv.setLic_image(null);
+						}
+					}
 				}
+				licList.add(lv);
 			}
 		}
+		av.setLicList(licList);
 		Map<String, String> errors = new HashMap<String, String>();
 		req.setAttribute("errors", errors);
 		Boolean valid = validate(av, errors);
@@ -75,8 +89,8 @@ public class AlbaUpdateController {
 			ServiceResult result = service.modifyAlba(av);
 			switch (result) {
 			case OK:
-				message ="추가 성공";
-				viewName ="redirect:/albaView.do?al_id="+av.getAl_id();
+				message ="수정 성공";
+				viewName ="redirect:/alba/albaUpdate.do?al_id="+av.getAl_id();
 				break;
 			case FAILED:
 				message="서버오류";
@@ -84,9 +98,10 @@ public class AlbaUpdateController {
 				break;
 			}
 		}else {
+			message="항목누락";
 			viewName="/alba/albaForm";
 		}
-		req.setAttribute("message", message);
+		req.getSession().setAttribute("message", message);
 		return viewName;
 		
 	}

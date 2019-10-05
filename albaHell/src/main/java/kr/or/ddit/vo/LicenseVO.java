@@ -13,8 +13,18 @@ public class LicenseVO implements Serializable{
 	private String lic_code;
 	private String lic_name;
 	private byte[] lic_image;
+	private String al_id;
 	
-	
+	public String getAl_id() {
+		return al_id;
+	}
+
+
+	public void setAl_id(String al_id) {
+		this.al_id = al_id;
+	}
+
+
 	public String getLic_code() {
 		return lic_code;
 	}

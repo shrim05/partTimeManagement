@@ -27,7 +27,9 @@
       </script>
       </c:if>
       <c:remove var="message" scope="session" />
-   <form action="${pageContext.request.contextPath}/alba/albaUpdate.do"
+   <form 
+   	  id="albaForm"
+   	  action="";
       method="post"
       enctype="multipart/form-data" >
       <table class="table table-bordered">
@@ -75,13 +77,18 @@
          </tr>
          <tr>
             <th>학력</th>
-            <td><input type="text" required class="form-control"
-               name="gr_name" value="${alba.gr_name}" /></td>
+            <td>
+            <input type="hidden" id="selectedGr" value="${alba.gr_code}">
+            <select name="gr_code">
+            	<option value>학력선택</option>
+            </select>
+             <span class="error">${errors.gr_code}</span>
+            </td>
          </tr>
          <tr>
             <th>경력</th>
             <td><input type="text"  class="form-control"
-               name="AL_CAREER" value="${alba.al_career}" /></td>
+               name="al_career" value="${alba.al_career}" /></td>
          </tr>
          <tr>
             <th>성별</th>
@@ -104,49 +111,122 @@
                  </td>
          </tr>
       </table>
-   <h4>자격증</h4>
+       
+   <h4>자격증 정보</h4>
+   <input type="button"	class="btn btn-secondary id="licAddBtn" value="자격증추가">
        <table class="table table-bordered" >
        <thead>
    			<tr>
-	   			<th>자격증코드</th>
-	   			<th>자격증명</th>
+	   			<th>자격증</th>
+	   			<th>자격증 사본등록</th>
+	   			<th>비 고</th>
    			</tr>
    			</thead>
    			<tbody id="licArea">
    	<c:if test="${not empty alba.licList }">
    		<c:forEach items="${alba.licList}" var="lic">
    			<tr>
-	   			<td>${lic.lic_code }>
-	   			<td>${lic.lic_name}</td>
-   			  <c:if test="${not empty lic.lic_image }">
-            	<td>
-            		<img src="data:images/*;base64,${lic.lic_imageBase64 }" />
-            	</td>
-           	</c:if>
-           	<c:if test="${empty lic.lic_image }">
+   			<c:url value="/alba/licenseImage.do" var="licImgURL">
+   			<c:param name="al_id" value="${alba.al_id }"/>
+   			<c:param name="lic_code" value="${lic.lic_code}"/>
+   			</c:url>
+   			<td><a href="${licImgURL}" target="_blank">${lic.lic_name}</a>
+   				<input type="hidden" name="lic_code" value="${lic.lic_code}">
+   			</td>
            	<td>
-           		자격증 사본 등록 요망
-       		  	<input type="file" name="lic_image" />
+     			<input type="file" accept="image" name="lic_image"/>
            	</td>
-           	</c:if>
+	           	<td>
+    	       		<input type="button"  value="삭제" id="licImgDelBtn" class="btn btn-warning">
+            	</td>
    			</tr>
    		</c:forEach>
+   	</c:if>
    		</tbody>
-   	</c:if>
-   	<c:if test="${empty alba.licList }">
-   	<tr><td colspan="3">자격증 등록<input type="button" id="licAddBtn" value="자격증추가"></td></tr>
-   	</c:if>
    </table>
-   <input type="submit" id="insertBtn" class="btn btn-info" value="저장">
-    <input type="reset" id="resetBtn" class="btn btn-info" value="취소">
-    <input type="submit" id="updateBtn" class="btn btn-info" value="수정">
-   <input type="button" id="deleteBtn" class="btn btn-info" value="삭제" >
- </form >
+	    <input type="button" id="insertBtn" class="btn btn-info" value="추가">
+	    <input type="button" id="updateBtn" class="btn btn-info" value="저장">
+	   	<input type="reset" id="resetBtn" class="btn btn-info" value="취소">
+		<input type="button" class="btn btn-primary" value="돌아가기" onclick="location.href='${cPath}/'">
+ 	</form>
  
  
  
 <script type="text/javascript">
-	var licArea = $('#licArea')
+	var licArea = $('#licArea');
+	var gradeTag = $("[name='gr_code']")
+	var selectedGradeCode = $('#selectedGr').val();
+	var insertBtn = $('#insertBtn');
+	var updateBtn = $('#updateBtn');
+	var albaForm = $('#albaForm');
+	
+	
+	$(function(){
+		let requestURI = window.location.href;
+		if(requestURI.indexOf("albaList.do")>0){
+			insertBtn.show();
+			updateBtn.hide();
+		}else if(requestURI.indexOf("albaUpdate.do")>0){
+			insertBtn.hide();
+			updateBtn.show();
+		}
+	});
+	
+	
+	
+	insertBtn.on('click',function(){
+		albaForm.attr("action", "${pageContext.request.contextPath}/alba/albaInsert.do")
+		albaForm.submit();
+	});
+	
+	updateBtn.on('click',function(){
+		albaForm.attr("action", "${pageContext.request.contextPath}/alba/albaUpdate.do")
+		albaForm.submit();
+	});
+	
+	$('#exampleModal').on('hidden.bs.modal', function () {
+		$(this).find("form")[0].reset();
+	})
+	generateGrade = function(){
+	    $.ajax({
+	        url: "${cPath}/others/getGradeList.do",
+	        dataType: "json",
+	        success: function (resp) {
+	        	let options = [];
+	        	$.each(resp,function(i,v){
+	        		options.push(
+	        			$("<option>").text(v.gr_name).attr({value:v.gr_code}).
+	        			prop("selected",v.gr_code==selectedGradeCode)		
+	        		);
+	        	});
+	        	$(gradeTag).append(options);
+	        },
+	        error : function(errorResp){
+	        	console.log(errorResp.status);
+	        }
+	    });
+	}
+	
+// 	generateLic = function(){
+// 	    $.ajax({
+// 	        url: "${cPath}/others/getLicList.do",
+// 	        dataType: "json",
+// 	        success: function (resp) {
+// 	        	let options = [];
+// 	        	$.each(resp,function(i,v){
+// 	        		options.push(
+// 	        			$("<option>").text(v.lic_name).attr({value:v.lic_code}).
+// 	        			prop("selected",v.lic_code==selectedLicCode)		
+// 	        		);
+// 	        	});
+// 	        	$(gradeTag).append(options);
+// 	        },
+// 	        error : function(errorResp){
+// 	        	console.log(errorResp.status);
+// 	        }
+// 	    });
+// 	}
+	
 	$('#deleteBtn').on('click',function(){
 	
 	});
@@ -159,6 +239,7 @@
 	$('#exampleModal').on('hidden.bs.modal', function () {
 		$(this).find("form")[0].reset();
 	})
+	generateGrade();
 </script>
 <c:remove  var="errors" scope="session" />
 </body>

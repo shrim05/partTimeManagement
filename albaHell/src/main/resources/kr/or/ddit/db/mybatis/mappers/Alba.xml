@@ -3,9 +3,24 @@
 <mapper namespace="kr.or.ddit.alba.dao.IAlbaDAO">
 <sql id="searchFrag">
 	<where>
-		<if test="searchVO!=null">
-			<if	test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.al_name)">
-				INSTR(AL_NAME, #{searchVO.al_name})>0
+		<if test="searchMap!=null">
+			<if	test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchMap.searchWord)">
+			<choose>
+				<when test="'id'.equals(searchMap.searchType)">
+					INSTR(AL_ID,#{searchMap.searchWord})>0
+				</when>
+				<when test="'name'.equals(searchMap.searchType)">
+					INSTR(AL_NAME, #{searchMap.al_name})>0
+				</when>
+				<when test="'address'.equals(searchMap.searchType)">
+					AL_ADDRESS LIKE '%'||#{searchMap.searchWord} ||'%'
+				</when>
+				<otherwise>
+					INSTR(AL_ID,#{searchMap.searchWord})>0
+					OR INSTR(AL_NAME,#{searchMap.searchWord})>0
+					OR AL_ADDRESS LIKE '%'||#{searchMap.searchWord} ||'%'
+				</otherwise>
+			</choose>	
 			</if>
 		</if>
 	</where>
@@ -26,6 +41,14 @@ SELECT COUNT(AL_ID) FROM ALBA
 	) A
 	WHERE RNUM BETWEEN #{startRow} AND #{endRow}
 </select>
+<select id="selectLicImg" parameterType="LicenseVO" resultType="LicenseVO">
+	SELECT 
+		LIC_IMAGE
+	FROM LIC_ALBA
+	WHERE AL_ID = #{al_id}
+	AND 
+	LIC_CODE =#{lic_code}
+</select>
 <resultMap type="AlbaVO" id="albaMap" autoMapping="true">
 	<id column="AL_ID" property="al_id" />
 	<collection property="licList" javaType="java.util.List" ofType="LicenseVO" autoMapping="true">
@@ -34,7 +57,7 @@ SELECT COUNT(AL_ID) FROM ALBA
 </resultMap>
 <select id="selectAlba" parameterType="AlbaVO" resultMap="albaMap">
 	SELECT A.AL_ID, AL_NAME, AL_AGE, AL_ADDRESS, AL_HP, AL_SPEC, AL_DESC,
-		G.GR_NAME, AL_CAREER, AL_GEN, AL_BTYPE, AL_MAIL, LL.LIC_CODE, LL.LIC_NAME
+		G.GR_NAME, A.GR_CODE, AL_CAREER, AL_GEN, AL_BTYPE, AL_MAIL, LL.LIC_CODE, LL.LIC_NAME
 		FROM ALBA A INNER JOIN GRADE G ON (A.GR_CODE=G.GR_CODE)
         LEFT OUTER JOIN (
         SELECT AL_ID, LI.LIC_CODE, LIC_NAME 
@@ -45,27 +68,33 @@ SELECT COUNT(AL_ID) FROM ALBA
 </select>
 
 <update id="updateAlba" parameterType="AlbaVO" >
-	UPDATE ALBA AS A, LIC_ALBA AS LA
+	UPDATE ALBA
 	SET 
-	A.AL_NAME = #{al_name},
-	A.AL_AGE = #{al_age},
-	A.AL_ADDRESS = #{al_address},
-	A.AL_HP = #{al_hp},
-	A.AL_SPEC = #{al_spec},
-	A.AL_DESC = #{al_desc},
-	A.GR_CODE = #{gr_code},
-	A.AL_CAREER = #{al_career},
-	A.AL_GEN = #{al_gen},
-	A.AL_BTYPE = #{al_btype},
-	A.AL_MAIL = #{al_mail}
-<if test="licList!=null">
-<foreach collection="licList" item="lic"></foreach>
-	LA.LIC_CODE = #{lic.lic_code}
-</if>
+	AL_NAME = #{al_name},
+	AL_AGE = #{al_age},
+	AL_ADDRESS = #{al_address},
+	AL_HP = #{al_hp},
+	AL_SPEC = #{al_spec},
+	AL_DESC = #{al_desc},
+	GR_CODE = #{gr_code},
+	AL_CAREER = #{al_career},
+	AL_GEN = #{al_gen},
+	AL_BTYPE = #{al_btype},
+	AL_MAIL = #{al_mail}
 	WHERE	
-	A.AL_ID = #{al_id}
+	AL_ID = #{al_id}
+</update>
+
+<update id="updateLic_Alba" parameterType="AlbaVO">
 <if test="licList!=null">
-	AND LA.
+<foreach collection="licList" item="lic" separator=";" open="DECLARE BEGIN" close="; END;">
+	UPDATE LIC_ALBA
+	SET LIC_IMAGE = #{lic.lic_image,jdbcType=BLOB}
+	WHERE 
+	AL_ID=#{al_id} 
+	AND
+	LIC_CODE=#{lic.lic_code}
+</foreach>
 </if>
 </update>
 
@@ -89,4 +118,8 @@ SELECT COUNT(AL_ID) FROM ALBA
 	   DELETE FROM alba 		
 	   WHERE AL_ID =#{al_id}
 </delete>
+
+<select id="selectGradeList" resultType="GradeVO">
+	SELECT GR_CODE, GR_NAME FROM GRADE
+</select>
 </mapper>

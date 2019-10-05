@@ -7,6 +7,8 @@ import org.apache.ibatis.session.SqlSessionFactory;
 
 import kr.or.ddit.db.CustomSqlSessionFactoryBuilder;
 import kr.or.ddit.vo.AlbaVO;
+import kr.or.ddit.vo.GradeVO;
+import kr.or.ddit.vo.LicenseVO;
 import kr.or.ddit.vo.PagingInfoVO;
 
 public class AlbaDAOImpl implements IAlbaDAO {
@@ -45,6 +47,7 @@ public class AlbaDAOImpl implements IAlbaDAO {
 		}
 	}
 
+	
 	@Override
 	public int selectAlbaCount(PagingInfoVO pagingVO) {
 		try(
@@ -62,11 +65,27 @@ public class AlbaDAOImpl implements IAlbaDAO {
 				){
 			IAlbaDAO mapper = sqlSession.getMapper(IAlbaDAO.class);
 			int cnt = mapper.updateAlba(av);
-			sqlSession.commit();
+			if(cnt>0&&av.getLicList()!=null) {
+//				cnt=
+				mapper.updateLic_Alba(av);
+			}
+			if(cnt>0) {
+				sqlSession.commit();
+			}
 		return cnt;
 		}
 	}
-
+	
+	@Override
+	public int updateLic_Alba(AlbaVO av) {
+		try(
+				SqlSession sqlSession = sqlSessionFactory.openSession();
+				){
+			IAlbaDAO mapper = sqlSession.getMapper(IAlbaDAO.class);
+			int cnt = mapper.updateLic_Alba(av);
+		return cnt;
+		}
+	}
 	@Override
 	public int deleteAlba(AlbaVO av) {
 		try(
@@ -86,8 +105,25 @@ public class AlbaDAOImpl implements IAlbaDAO {
 				){
 			IAlbaDAO mapper = sqlSession.getMapper(IAlbaDAO.class);
 			int cnt = mapper.insertAlba(av);
-			sqlSession.commit();
 		return cnt;
+		}
+	}
+	@Override
+	public List<GradeVO> selectGradeList() {
+		try(
+				SqlSession sqlSession = sqlSessionFactory.openSession();
+				){
+			IAlbaDAO mapper = sqlSession.getMapper(IAlbaDAO.class);
+		return mapper.selectGradeList();
+		}
+	}
+	@Override
+	public LicenseVO selectLicImg(LicenseVO lv) {
+		try(
+				SqlSession sqlSession = sqlSessionFactory.openSession();
+				){
+			IAlbaDAO mapper = sqlSession.getMapper(IAlbaDAO.class);
+		return mapper.selectLicImg(lv);
 		}
 	}
 
