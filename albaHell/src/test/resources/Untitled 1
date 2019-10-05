@@ -1,0 +1,115 @@
+관리자에 의한 알바생 관리
+1. 데이터 설계
+SELECT OBJECT_NAME FROM USER_OBJECTS;
+
+CREATE TABLE LICENSE(
+    LIC_CODE CHAR(4),
+    LIC_NAME VARCHAR2(50 CHAR) NOT NULL,
+    CONSTRAINT PK_LICENSE PRIMARY KEY(LIC_CODE)
+);
+INSERT INTO LICENSE(LIC_CODE, LIC_NAME) VALUES('L001', '정보처리산업기사');
+INSERT INTO LICENSE(LIC_CODE, LIC_NAME) VALUES('L002', '정보처리기사');
+INSERT INTO LICENSE(LIC_CODE, LIC_NAME) VALUES('L003', '정보보안산업기사');
+INSERT INTO LICENSE(LIC_CODE, LIC_NAME) VALUES('L004', '정보보안기사');
+INSERT INTO LICENSE(LIC_CODE, LIC_NAME) VALUES('L005', 'SQLD');
+INSERT INTO LICENSE(LIC_CODE, LIC_NAME) VALUES('L006', 'SQLP');
+
+CREATE TABLE GRADE(
+    GR_CODE CHAR(4),
+    GR_NAME VARCHAR2(10 CHAR) NOT NULL,
+    CONSTRAINT PK_GRADE PRIMARY KEY(GR_CODE)
+);
+INSERT INTO GRADE(GR_CODE, GR_NAME)VALUES('G001', '고졸');
+INSERT INTO GRADE(GR_CODE, GR_NAME)VALUES('G002', '초대졸');
+INSERT INTO GRADE(GR_CODE, GR_NAME)VALUES('G003', '대졸');
+INSERT INTO GRADE(GR_CODE, GR_NAME)VALUES('G004', '석사');
+INSERT INTO GRADE(GR_CODE, GR_NAME)VALUES('G005', '박사');
+
+CREATE TABLE ALBA(
+    AL_ID CHAR(8), -- 알바생코드, ex) A0000001
+    AL_NAME VARCHAR2(10 CHAR) NOT NULL, -- 이름
+    AL_AGE NUMBER(3) NOT NULL, -- 나이
+    AL_ADDRESS VARCHAR2(200) NOT NULL, -- 주소
+    AL_HP VARCHAR2(15)  NOT NULL, -- 휴대폰
+    AL_SPEC VARCHAR2(500), -- 특기사항
+    AL_DESC VARCHAR2(500), -- 비고
+    GR_CODE CHAR(4) NOT NULL, -- 학력
+    AL_CAREER VARCHAR2(200), -- 경력사항
+    AL_GEN CHAR(1) NOT NULL, -- F:여자,  M:남자
+    AL_BTYPE VARCHAR2(2) NOT NULL, -- 혈액형, A, B, O, AB
+    AL_MAIL VARCHAR2(100) NOT NULL, -- 이메일
+    CONSTRAINT PK_ALBA PRIMARY KEY (AL_ID),
+    CONSTRAINT FK_ALBA_GRADE FOREIGN KEY (GR_CODE) REFERENCES GRADE(GR_CODE)
+);
+
+CREATE TABLE LIC_ALBA(
+    AL_ID CHAR(8), -- 알바생 코드
+    LIC_CODE CHAR(4), -- 자격증 코드
+    LIC_IMAGE BLOB, -- 자격증 사본
+    CONSTRAINT PK_LIC_ALBA PRIMARY KEY(AL_ID, LIC_CODE),
+    CONSTRAINT FK_LIC_ALBA_ALBA FOREIGN KEY(AL_ID) 
+        REFERENCES ALBA(AL_ID) ON DELETE CASCADE,
+    CONSTRAINT FK_LIC_ALBA_LICENSE FOREIGN KEY(LIC_CODE) 
+        REFERENCES LICENSE(LIC_CODE) ON DELETE SET NULL
+);
+
+INSERT INTO ALBA (
+    AL_ID,    AL_NAME,    AL_AGE,
+    AL_ADDRESS,    AL_HP,    AL_SPEC,
+    AL_DESC,    GR_CODE,    AL_CAREER,
+    AL_GEN,    AL_BTYPE,    AL_MAIL
+)
+SELECT 'ALBA_'||LPAD(ROWNUM, 3, '0') , MEM_NAME, 
+    ROUND((SYSDATE-TO_DATE('19'||MEM_REGNO1, 'YYYYMMDD'))/365),
+    MEM_ADD1||' '||MEM_ADD2, MEM_HP, '스펙',
+    '자기소개', 'G003', MEM_JOB, 
+    DECODE(SUBSTR(MEM_REGNO2, 1, 1), '1', 'M', 'F'),
+    'O', MEM_MAIL
+FROM MEMBER;
+INSERT INTO LIC_ALBA (AL_ID, LIC_CODE)
+SELECT AL_ID, 'L001'
+FROM ALBA;
+
+SELECT
+    A.AL_ID,		    AL_NAME,		    AL_AGE,		    AL_ADDRESS,
+    AL_HP,		    AL_SPEC,		    AL_DESC,		A.GR_CODE,
+    AL_CAREER,		AL_GEN,		    	AL_BTYPE,		AL_MAIL
+    , GR_NAME
+    , C.LIC_CODE, LIC_NAME
+FROM ALBA A INNER JOIN GRADE B ON (A.GR_CODE = B.GR_CODE)
+            LEFT OUTER JOIN LIC_ALBA C ON (A.AL_ID = C.AL_ID)
+            LEFT OUTER JOIN LICENSE D ON (C.LIC_CODE = D.LIC_CODE);
+           
+INSERT INTO LIC_ALBA(AL_ID, LIC_CODE)
+SELECT AL_ID, 'L004'
+FROM (SELECT ROWNUM RNUM, AL_ID FROM ALBA)
+WHERE MOD(RNUM,2) = 0;
+
+COMMIT;
+
+-- 알바생 상세 정보 조회시, 취득한 자격증 명을 같이 조회.
+-- 알바생 상세 정보 조회시, 자격증 명을 클릭하면, 해당 자격증 사본 이미지를 조회함.
+
+2. 어플리케이션 설계
+알바생 목록 조회 : /alba/albaList.do 
+	AlbaRetrieveController, /alba/albaList.jsp
+알바생 상세 조회 : /alba/albaView.do
+	AlbaRetrieveController, /alba/albaView.jsp
+알바생 정보 수정 : /alba/albaUpdate.do(GET/POST)
+	AlbaUpdateController, /alba/albaForm.jsp
+신규 알바생 등록 : /alba/albaInsert.do(GET/POST)
+	AlbaInsertController, /alba/albaForm.jsp
+알바생 정보 삭제 : /alba/albaDelete.do
+	AlbaDeleteController, /alba/albaView.jsp
+자격증 이미지 조회
+/alba/licenseImage.do [AlbaLicenseImageController]
+
+
+
+
+
+
+
+
+
+

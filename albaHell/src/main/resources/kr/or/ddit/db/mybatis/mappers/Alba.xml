@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="kr.or.ddit.alba.dao.IAlbaDAO">
+<sql id="searchFrag">
+	<where>
+		<if test="searchVO!=null">
+			<if	test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.al_name)">
+				INSTR(AL_NAME, #{searchVO.al_name})>0
+			</if>
+		</if>
+	</where>
+</sql>
+
+<select id="selectAlbaCount" parameterType="PagingInfoVO" resultType="int">
+SELECT COUNT(AL_ID) FROM ALBA
+<include refid="searchFrag" />
+</select>
+
+<select id="selectAlbaList" parameterType="PagingInfoVO" resultType="AlbaVO">
+	SELECT A.*
+	FROM(
+		SELECT ROWNUM RNUM, AL_ID, AL_NAME, AL_AGE, AL_ADDRESS, AL_HP, AL_SPEC, AL_DESC,
+		GR_NAME, AL_CAREER, AL_GEN, AL_BTYPE, AL_MAIL
+		FROM ALBA A INNER JOIN GRADE G ON (A.GR_CODE=G.GR_CODE)
+		<include refid="searchFrag" />
+	) A
+	WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+</select>
+<resultMap type="AlbaVO" id="albaMap" autoMapping="true">
+	<id column="AL_ID" property="al_id" />
+	<collection property="licList" javaType="java.util.List" ofType="LicenseVO" autoMapping="true">
+		<id column="LIC_CODE" property="lic_code" />
+	</collection>
+</resultMap>
+<select id="selectAlba" parameterType="AlbaVO" resultMap="albaMap">
+	SELECT A.AL_ID, AL_NAME, AL_AGE, AL_ADDRESS, AL_HP, AL_SPEC, AL_DESC,
+		G.GR_NAME, AL_CAREER, AL_GEN, AL_BTYPE, AL_MAIL, LL.LIC_CODE, LL.LIC_NAME
+		FROM ALBA A INNER JOIN GRADE G ON (A.GR_CODE=G.GR_CODE)
+        LEFT OUTER JOIN (
+        SELECT AL_ID, LI.LIC_CODE, LIC_NAME 
+        FROM LICENSE LI, LIC_ALBA LA 
+        WHERE LI.LIC_CODE = LA.LIC_CODE
+        ) LL ON (A.AL_ID = LL.AL_ID)
+		WHERE A.AL_ID = #{al_id}
+</select>
+
+<update id="updateAlba" parameterType="AlbaVO" >
+	UPDATE ALBA AS A, LIC_ALBA AS LA
+	SET 
+	A.AL_NAME = #{al_name},
+	A.AL_AGE = #{al_age},
+	A.AL_ADDRESS = #{al_address},
+	A.AL_HP = #{al_hp},
+	A.AL_SPEC = #{al_spec},
+	A.AL_DESC = #{al_desc},
+	A.GR_CODE = #{gr_code},
+	A.AL_CAREER = #{al_career},
+	A.AL_GEN = #{al_gen},
+	A.AL_BTYPE = #{al_btype},
+	A.AL_MAIL = #{al_mail}
+<if test="licList!=null">
+<foreach collection="licList" item="lic"></foreach>
+	LA.LIC_CODE = #{lic.lic_code}
+</if>
+	WHERE	
+	A.AL_ID = #{al_id}
+<if test="licList!=null">
+	AND LA.
+</if>
+</update>
+
+<insert id="insertAlba" parameterType="AlbaVO">
+	<selectKey order="BEFORE" resultType="String" keyProperty="al_id">
+	SELECT 'ALBA_'||LPAD(NVL(TO_NUMBER(SUBSTR(MAX(AL_ID), 6)),0) + 1, 3, '0')
+     FROM ALBA 
+	</selectKey>
+	 INSERT INTO alba (
+    AL_ID,     AL_NAME,     AL_AGE,    AL_ADDRESS,
+    AL_HP,    AL_SPEC,    AL_DESC,    GR_CODE,
+    AL_CAREER,    AL_GEN,    AL_BTYPE,    AL_MAIL
+) VALUES (
+     #{al_id},     #{al_name},     #{al_age},    #{al_address},
+    #{al_hp},    #{al_spec},    #{al_desc},    #{gr_code},
+    #{al_career},    #{al_gen},    #{al_btype},    #{al_mail}
+)
+</insert>
+
+<delete id="deleteAlba" parameterType="AlbaVO">
+	   DELETE FROM alba 		
+	   WHERE AL_ID =#{al_id}
+</delete>
+</mapper>

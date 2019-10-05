@@ -1,0 +1,33 @@
+package kr.or.ddit.alba.exception;
+
+public class AlbaNotFoundException extends RuntimeException {
+
+	public AlbaNotFoundException() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
+	public AlbaNotFoundException(String message, Throwable cause, boolean enableSuppression,
+			boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+		// TODO Auto-generated constructor stub
+	}
+
+	public AlbaNotFoundException(String message, Throwable cause) {
+		super(message, cause);
+		// TODO Auto-generated constructor stub
+	}
+
+	public AlbaNotFoundException(String message) {
+		super(message);
+		// TODO Auto-generated constructor stub
+	}
+
+	public AlbaNotFoundException(Throwable cause) {
+		super(cause);
+		// TODO Auto-generated constructor stub
+	}
+	
+
+
+}
