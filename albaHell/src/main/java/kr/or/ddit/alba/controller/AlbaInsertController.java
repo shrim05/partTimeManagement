@@ -54,9 +54,13 @@ public class AlbaInsertController {
 				lv.setLic_code(lic_codes[i]);
 				if(req instanceof MultipartRequestWapper) {
 					if(partWrappers!=null) {
-						lv.setLic_image(partWrappers[i].getBytes());
+						try {
+							lv.setLic_image(partWrappers[i].getBytes());
+						}catch(ArrayIndexOutOfBoundsException e) {
+							lv.setLic_image(null);
 						}
 					}
+				}
 				licList.add(lv);
 			}
 		}
@@ -71,7 +75,7 @@ public class AlbaInsertController {
 			switch (result) {
 			case OK:
 				message ="추가 성공";
-				viewName ="redirect:/alba/albaView.do?who="+av.getAl_id();
+				viewName ="redirect:/alba/albaUpdate.do?al_id="+av.getAl_id();
 				break;
 			case FAILED:
 				message="서버오류";
@@ -84,7 +88,6 @@ public class AlbaInsertController {
 		}
 		req.setAttribute("message", message);
 		return viewName;
-		
 	}
 	
 	private boolean validate(AlbaVO av, Map errors) {

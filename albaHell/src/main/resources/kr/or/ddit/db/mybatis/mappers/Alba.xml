@@ -85,16 +85,19 @@ SELECT COUNT(AL_ID) FROM ALBA
 	AL_ID = #{al_id}
 </update>
 
-<update id="updateLic_Alba" parameterType="AlbaVO">
-<if test="licList!=null">
-<foreach collection="licList" item="lic" separator=";" open="DECLARE BEGIN" close="; END;">
+<!-- <update id="updateLic_Alba" parameterType="AlbaVO"> -->
+<update id="updateLic_Alba" parameterType="LicenseVO">
+<if test="lic_image!=null">
+<!-- <if test="licList!=null"> -->
+<!-- <foreach collection="licList" item="lic" separator=";" open="DECLARE BEGIN" close="; END;"> -->
 	UPDATE LIC_ALBA
-	SET LIC_IMAGE = #{lic.lic_image,jdbcType=BLOB}
+	SET LIC_IMAGE = #{lic_image,jdbcType=BLOB}
 	WHERE 
 	AL_ID=#{al_id} 
 	AND
-	LIC_CODE=#{lic.lic_code}
-</foreach>
+	LIC_CODE=#{lic_code}
+<!-- </foreach> -->
+<!-- </if> -->
 </if>
 </update>
 
@@ -113,13 +116,48 @@ SELECT COUNT(AL_ID) FROM ALBA
     #{al_career},    #{al_gen},    #{al_btype},    #{al_mail}
 )
 </insert>
+<insert id="insertLicAlba" parameterType="LicenseVO">
+	MERGE INTO LIC_ALBA TA
+    USING DUAL
+	ON(AL_ID = #{al_id} AND TA.LIC_CODE = #{lic_code})
+<!-- 	WHEN MATCHED THEN  -->
+<!-- 	UPDATE SET TA.LIC_IMAGE =  -->
+<!-- 	<if test ="lic_image!=null"> -->
+<!-- 	#{lic_image,jdbcType=BLOB} -->
+<!-- 	</if> -->
+<!-- 	<if test ="lic_image==null"> -->
+<!-- 	NULL -->
+<!-- 	</if> -->
+	WHEN NOT MATCHED THEN
+	INSERT (TA.AL_ID, TA.LIC_CODE
+<!-- 	<if test ="lic_image!=null"> -->
+<!-- 	, TA.LIC_IMAGE -->
+<!-- 	</if> -->
+	)
+	VALUES(
+		#{al_id}, #{lic_code}
+<!-- 		<if test ="lic_image!=null"> -->
+<!-- 		, #{lic_image,jdbcType=BLOB} -->
+<!-- 		</if> -->
+	)
+</insert>
 
 <delete id="deleteAlba" parameterType="AlbaVO">
-	   DELETE FROM alba 		
+	   DELETE FROM ALBA 		
 	   WHERE AL_ID =#{al_id}
 </delete>
 
+<delete id="deleteLicAlba" parameterType="LicenseVO">
+	DELETE FROM LIC_ALBA
+	WHERE AL_ID=#{al_id}
+	<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(lic_code)">
+	AND LIC_CODE=#{lic_code}
+	</if>
+</delete>
 <select id="selectGradeList" resultType="GradeVO">
 	SELECT GR_CODE, GR_NAME FROM GRADE
+</select>
+<select id="selectLicenseList" resultType="LicenseVO">
+	SELECT LIC_CODE, LIC_NAME FROM LICENSE
 </select>
 </mapper>

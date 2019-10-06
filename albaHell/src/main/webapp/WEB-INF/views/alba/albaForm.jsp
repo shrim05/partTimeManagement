@@ -113,7 +113,7 @@
       </table>
        
    <h4>자격증 정보</h4>
-   <input type="button"	class="btn btn-secondary id="licAddBtn" value="자격증추가">
+   <input type="button"	class="btn btn-secondary" id="licAddBtn" value="자격증추가">
        <table class="table table-bordered" >
        <thead>
    			<tr>
@@ -125,21 +125,24 @@
    			<tbody id="licArea">
    	<c:if test="${not empty alba.licList }">
    		<c:forEach items="${alba.licList}" var="lic">
+   		<c:if test="${not empty lic.lic_code }">
    			<tr>
    			<c:url value="/alba/licenseImage.do" var="licImgURL">
    			<c:param name="al_id" value="${alba.al_id }"/>
    			<c:param name="lic_code" value="${lic.lic_code}"/>
    			</c:url>
-   			<td><a href="${licImgURL}" target="_blank">${lic.lic_name}</a>
+   			<td>
+   				<a href="${licImgURL}" target="_blank">${lic.lic_name}</a>
    				<input type="hidden" name="lic_code" value="${lic.lic_code}">
    			</td>
            	<td>
      			<input type="file" accept="image" name="lic_image"/>
            	</td>
 	           	<td>
-    	       		<input type="button"  value="삭제" id="licImgDelBtn" class="btn btn-warning">
+    	       		<input type="button" data-lic="${lic.lic_code }"  value="삭제" id="licImgDelBtn" class="btn btn-warning">
             	</td>
    			</tr>
+ 			</c:if>
    		</c:forEach>
    	</c:if>
    		</tbody>
@@ -159,7 +162,48 @@
 	var insertBtn = $('#insertBtn');
 	var updateBtn = $('#updateBtn');
 	var albaForm = $('#albaForm');
+	var licAddBtn = $('#licAddBtn');
 	
+	
+	licArea.on('click','#licImgDelBtn',function(){
+		let lic_code = $(this).data("lic");
+		let al_id = $('[name="al_id"]').val();
+		$.ajax({
+			type : "post",
+			url : "${cPath}/alba/albaLicenseDelete.do",
+			data : {"lic_code":lic_code, "al_id":al_id},
+			dataType: "text",
+			success : function(resp){
+				alert(resp);
+				location.reload();
+			},
+			error : function(errorResp) {
+				console.log(errorResp.status);
+			}
+		});
+	});
+	
+	licAddBtn.on('click',function(){
+		$.ajax({
+			url : "${cPath}/others/getLicenseList.do",
+			dataType : "json",
+			success : function(resp) {
+				var code = "<tr><td><select name='lic_code'>"; 
+				$.each(resp,function(i,v){
+    	    			code+="<option value="+v.lic_code+">"+v.lic_name+"</option>";
+		        	});
+				code+="</td><td><input type='file' accept='image' name='lic_image'/></td>";
+				code+="<td><input type='button'  value='추가취소' id='licAddCancelBtn' class='btn btn-warning'></tr>";
+	        	$(licArea).append(code);
+			},
+			error : function(errorResp) {
+				console.log(errorResp.status);
+			}
+		});
+	});
+	licArea.on('click','#licAddCancelBtn',function(){
+		$(this).closest('tr').remove();
+	});
 	
 	$(function(){
 		let requestURI = window.location.href;
@@ -206,34 +250,6 @@
 	        }
 	    });
 	}
-	
-// 	generateLic = function(){
-// 	    $.ajax({
-// 	        url: "${cPath}/others/getLicList.do",
-// 	        dataType: "json",
-// 	        success: function (resp) {
-// 	        	let options = [];
-// 	        	$.each(resp,function(i,v){
-// 	        		options.push(
-// 	        			$("<option>").text(v.lic_name).attr({value:v.lic_code}).
-// 	        			prop("selected",v.lic_code==selectedLicCode)		
-// 	        		);
-// 	        	});
-// 	        	$(gradeTag).append(options);
-// 	        },
-// 	        error : function(errorResp){
-// 	        	console.log(errorResp.status);
-// 	        }
-// 	    });
-// 	}
-	
-	$('#deleteBtn').on('click',function(){
-	
-	});
-	$('#licAddBtn').on('click', function(){
-		let code = "<tr><td><input type='text'></td></tr>"
-		licArea.prepend(code);
-	});
 	
 	
 	$('#exampleModal').on('hidden.bs.modal', function () {

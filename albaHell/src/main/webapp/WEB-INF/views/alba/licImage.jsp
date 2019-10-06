@@ -8,10 +8,10 @@
 <title>Insert title here</title>
 </head>
 <body>
-<c:if test="${not empty lic.lic_img }">
+<c:if test="${not empty lic.lic_image }">
 <img src="data:images/*;base64,${lic.lic_imageBase64 }" />
 </c:if>
-<c:if test="${empty lic.lic_img }">
+<c:if test="${empty lic.lic_image }">
 등록된 자격증 사본 없음
 </c:if>
 </body>

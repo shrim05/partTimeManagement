@@ -27,13 +27,15 @@
       </script>
       </c:if>
       <c:remove var="message" scope="session" />
-   <form action="${pageContext.request.contextPath}/alba/albaUpdate.do"
+   <form id="albaViewForm" 
+   	  action="${pageContext.request.contextPath}/alba/albaUpdate.do"
       method="post"
       enctype="multipart/form-data" >
       <table class="table table-bordered">
          <tr>
             <th>아이디</th>
             <td>${alba.al_id}</td>
+            <input type="hidden" name="al_id" value="${alba.al_id}" />
          </tr>
          <tr>
             <th>이름</th>
@@ -85,35 +87,32 @@
          </tr>
          
       </table>
-   <h4>자격증</h4>
-       <table class="table table-bordered">
-   	<c:if test="${not empty alba.licList }">
+    <h4>자격증 정보</h4>
+       <table class="table table-bordered" >
        <thead>
    			<tr>
-	   			<th>자격증코드</th>
-	   			<th>자격증명</th>
-	   			<th>자격증사본</th>
+	   			<th>자격증 코드</th>
+	   			<th>자격증 이름</th>
    			</tr>
    			</thead>
-   			<tbody>
+   			<tbody id="licArea">
+   	<c:if test="${not empty alba.licList }">
    		<c:forEach items="${alba.licList}" var="lic">
    			<tr>
-	   			<td>${lic.lic_code }
-	   			<td>${lic.lic_name}</td>
-   			  <c:if test="${not empty lic.lic_image }">
-            	<td>
-            		<img src="data:images/*;base64,${lic.lic_imageBase64 }" />
-            	</td>
-           	</c:if>
-           	<c:if test="${empty lic.lic_image }">
-           	<td>
-           		자격증 사본 등록 요망
-           	</td>
-           	</c:if>
+   			<td>
+   				${lic.lic_code}
+   			</td>
+   			<c:url value="/alba/licenseImage.do" var="licImgURL">
+	   			<c:param name="al_id" value="${alba.al_id }"/>
+	   			<c:param name="lic_code" value="${lic.lic_code}"/>
+   			</c:url>
+   			<td><a href="${licImgURL}" target="_blank">${lic.lic_name}</a>
+   				<input type="hidden" name="lic_code" value="${lic.lic_code}">
+   			</td>
    			</tr>
    		</c:forEach>
-   		</tbody>
    	</c:if>
+   		</tbody>
    	<c:if test="${empty alba.licList }">
    	<tr><td colspan="6">자격증 없음</td></tr>
    	</c:if>
@@ -127,7 +126,16 @@
    <input type="button" id="deleteBtn" class="btn btn-info" value="삭제" >
  </form >
 <script type="text/javascript">
-	
+var albaViewForm= $('#albaViewForm');
+$('#deleteBtn').on('click',function(){
+	 let msg = "삭제하시겠습니까?";
+    if (confirm(msg)!=0) {
+    	albaViewForm.attr("action", "${cPath}/alba/albaDelete.do")
+		albaViewForm.submit();
+    } else {
+   	 return;
+    }
+});
 	
 </script>
 <c:remove  var="errors" scope="session" />

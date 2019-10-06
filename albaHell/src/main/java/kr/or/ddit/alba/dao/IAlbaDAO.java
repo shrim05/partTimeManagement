@@ -13,9 +13,12 @@ public interface IAlbaDAO {
 	public AlbaVO selectAlba(AlbaVO av);
 	public int selectAlbaCount(PagingInfoVO pagingVO);
 	public int updateAlba(AlbaVO av);
-	public int updateLic_Alba(AlbaVO av);
+	public int updateLic_Alba(LicenseVO lv);
 	public int deleteAlba(AlbaVO av);
 	public int insertAlba(AlbaVO av);
 	public List<GradeVO> selectGradeList();
+	public List<LicenseVO> selectLicenseList();
 	public LicenseVO selectLicImg(LicenseVO lv);
+	public int insertLicAlba(LicenseVO lv);
+	public int deleteLicAlba(LicenseVO lv);
 }

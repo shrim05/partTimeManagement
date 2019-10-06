@@ -65,9 +65,21 @@ public class AlbaDAOImpl implements IAlbaDAO {
 				){
 			IAlbaDAO mapper = sqlSession.getMapper(IAlbaDAO.class);
 			int cnt = mapper.updateAlba(av);
+//			if(cnt>0&&av.getLicList()!=null) {
+////				cnt=
+//				mapper.updateLic_Alba(av);
+//			}
 			if(cnt>0&&av.getLicList()!=null) {
-//				cnt=
-				mapper.updateLic_Alba(av);
+				List<LicenseVO> llv = av.getLicList();
+				for (int i = 0; i < llv.size(); i++) {
+					llv.get(i).setAl_id(av.getAl_id());
+					mapper.insertLicAlba(llv.get(i));
+					if(llv.get(i).getLic_image()!=null) {
+						cnt = mapper.updateLic_Alba(llv.get(i));
+					}else {
+						continue;
+					}
+				}
 			}
 			if(cnt>0) {
 				sqlSession.commit();
@@ -77,12 +89,12 @@ public class AlbaDAOImpl implements IAlbaDAO {
 	}
 	
 	@Override
-	public int updateLic_Alba(AlbaVO av) {
+	public int updateLic_Alba(LicenseVO lv) {
 		try(
 				SqlSession sqlSession = sqlSessionFactory.openSession();
 				){
 			IAlbaDAO mapper = sqlSession.getMapper(IAlbaDAO.class);
-			int cnt = mapper.updateLic_Alba(av);
+			int cnt = mapper.updateLic_Alba(lv);
 		return cnt;
 		}
 	}
@@ -92,7 +104,22 @@ public class AlbaDAOImpl implements IAlbaDAO {
 				SqlSession sqlSession = sqlSessionFactory.openSession();
 				){
 			IAlbaDAO mapper = sqlSession.getMapper(IAlbaDAO.class);
+			LicenseVO lv = new LicenseVO();
+			lv.setAl_id(av.getAl_id());
+			mapper.deleteLicAlba(lv);
 			int cnt = mapper.deleteAlba(av);
+			sqlSession.commit();
+		return cnt;
+		}
+	}
+	
+	@Override
+	public int deleteLicAlba(LicenseVO lv) {
+		try(
+				SqlSession sqlSession = sqlSessionFactory.openSession();
+				){
+			IAlbaDAO mapper = sqlSession.getMapper(IAlbaDAO.class);
+			int cnt = mapper.deleteLicAlba(lv);
 			sqlSession.commit();
 		return cnt;
 		}
@@ -105,6 +132,19 @@ public class AlbaDAOImpl implements IAlbaDAO {
 				){
 			IAlbaDAO mapper = sqlSession.getMapper(IAlbaDAO.class);
 			int cnt = mapper.insertAlba(av);
+			if(cnt>0&&av.getLicList()!=null) {
+				List<LicenseVO> llv = av.getLicList();
+				for (int i = 0; i < llv.size(); i++) {
+					llv.get(i).setAl_id(av.getAl_id());
+					cnt = mapper.insertLicAlba(llv.get(i));
+					if(cnt<0) {
+						return cnt;
+					}
+				}
+			}
+			if(cnt>0) {
+				sqlSession.commit();
+			}
 		return cnt;
 		}
 	}
@@ -124,6 +164,25 @@ public class AlbaDAOImpl implements IAlbaDAO {
 				){
 			IAlbaDAO mapper = sqlSession.getMapper(IAlbaDAO.class);
 		return mapper.selectLicImg(lv);
+		}
+	}
+	@Override
+	public List<LicenseVO> selectLicenseList() {
+		try(
+				SqlSession sqlSession = sqlSessionFactory.openSession();
+				){
+			IAlbaDAO mapper = sqlSession.getMapper(IAlbaDAO.class);
+		return mapper.selectLicenseList();
+		}
+	}
+	@Override
+	public int insertLicAlba(LicenseVO lv) {
+		try(
+				SqlSession sqlSession = sqlSessionFactory.openSession();
+				){
+			IAlbaDAO mapper = sqlSession.getMapper(IAlbaDAO.class);
+			int cnt = mapper.insertLicAlba(lv);
+		return cnt;
 		}
 	}
 

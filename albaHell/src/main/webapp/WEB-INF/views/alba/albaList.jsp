@@ -12,7 +12,13 @@
 <title>alba List</title>
 </head>
 <body>
-<button type="button" id="addAlbaBtn">알바 등록</button>
+  <c:if test="${not empty message }">
+      <script type="text/javascript">
+         alert("${message}"); 
+      </script>
+      </c:if>
+   <c:remove var="message" scope="session" />
+<button type="button" id="addAlbaBtn" class="btn btn-primary">알바 등록</button>
 <table class="table table-condensed">
 	<thead>
 		<tr>
